@@ -68,7 +68,51 @@ function drawChart(){let c=$('chart'),ctx=c.getContext('2d'),w=c.clientWidth,h=c
 function renderAll(){drawChart();let rows=Object.entries(getData()).sort((a,b)=>b[0].localeCompare(a[0]));$('history').innerHTML='';if(!rows.length)$('history').innerHTML='<div class="empty">まだ記録がありません</div>';rows.forEach(([date,d])=>{let el=document.createElement('div');el.className='entry';let tags=symptomDefs.map(([k,n])=>d.symptoms?.[k]>0?`<span class="tag">${n}: ${levels[d.symptoms[k]]}</span>`:'').join('');el.innerHTML=`<div class="entry-top"><strong>${date}　気分 ${d.mood}/5 ・体調 ${d.health}/5</strong><button class="secondary" data-date="${date}">編集</button></div><div>${tags}</div>${d.note?'<p>'+escapeHTML(d.note)+'</p>':''}`;el.querySelector('button').onclick=()=>{showTab('entry');$('date').value=date;loadDate()};$('history').append(el)});let all=Object.values(getData());$('symptom-summary').innerHTML=symptomDefs.map(([k,n])=>{let count=all.filter(d=>(d.symptoms?.[k]||0)>0).length;return `<div style="margin:8px 0"><b>${n}</b>：${count}日 / ${all.length}日</div>`}).join('')||'記録が増えると、症状の出現日数を表示します。'}
 function escapeHTML(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function exportCSV(){let rows=Object.entries(getData()).sort((a,b)=>a[0].localeCompare(b[0]));let header=['date','mood','health','headache','irritability','fatigue','note'];let lines=[header,...rows.map(([date,d])=>[date,d.mood,d.health,...symptomDefs.map(([k])=>d.symptoms?.[k]||0),d.note||''])].map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(','));let blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='daily-condition.csv';a.click();URL.revokeObjectURL(url)}
-function importCSV(e){let file=e.target.files[0];if(!file)return;let reader=new FileReader();reader.onload=()=>{try{let lines=reader.result.replace(/^\ufeff/,'').trim().split(/\r?\n/).slice(1),data=getData();lines.forEach(line=>{let vals=line.match(/("(?:[^"]|"")*"|[^,]*)(,|$)/g)?.map(x=>x.replace(/,$/,'').replace(/^"|"$/g,'').replace(/""/g,'"'))||[];if(vals[0])data[vals[0]]={mood:+vals[1],health:+vals[2],symptoms:{headache:+vals[3],irritability:+vals[4],fatigue:+vals[5]},note:vals[6]||''}});setData(data);renderAll();alert('CSVを読み込みました')}catch(err){alert('CSVを読み込めませんでした')}};reader.readAsText(file);e.target.value=''}
+function parseCSV(text){
+  const rows=[];let row=[],field='',quoted=false;
+  for(let i=0;i<text.length;i++){
+    const ch=text[i];
+    if(quoted){
+      if(ch==='"'&&text[i+1]==='"'){field+='"';i++}
+      else if(ch==='"')quoted=false;
+      else field+=ch;
+    }else{
+      if(ch==='"')quoted=true;
+      else if(ch===','){row.push(field);field=''}
+      else if(ch==='\n'){row.push(field);rows.push(row);row=[];field=''}
+      else if(ch!=='\r')field+=ch;
+    }
+  }
+  if(field.length||row.length){row.push(field);rows.push(row)}
+  return rows;
+}
+function importCSV(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const rows=parseCSV(String(reader.result).replace(/^\ufeff/,''));
+      if(!rows.length)throw new Error('empty');
+      const header=rows[0].map(x=>x.trim());
+      const expected=['date','mood','health','headache','irritability','fatigue','note'];
+      if(expected.some((v,i)=>header[i]!==v))throw new Error('header');
+      const existing=getData();const data=Object.fromEntries(Object.entries(existing).filter(([date,record])=>/^\d{4}-\d{2}-\d{2}$/.test(date)&&Number.isInteger(record?.mood)&&record.mood>=1&&record.mood<=5&&Number.isInteger(record?.health)&&record.health>=1&&record.health<=5));let imported=0;
+      rows.slice(1).forEach(vals=>{
+        if(!vals.length||!vals[0])return;
+        const date=vals[0].trim(),m=Number(vals[1]),h=Number(vals[2]);
+        if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isInteger(m)||m<1||m>5||!Number.isInteger(h)||h<1||h>5)return;
+        const nums=vals.slice(3,6).map(Number);
+        if(nums.length!==3||nums.some(n=>!Number.isInteger(n)||n<0||n>3))return;
+        data[date]={mood:m,health:h,symptoms:{headache:nums[0],irritability:nums[1],fatigue:nums[2]},note:vals[6]||''};
+        imported++;
+      });
+      if(!imported)throw new Error('no valid rows');
+      setData(data);renderAll();alert(imported+'件の記録を読み込みました');
+    }catch(err){alert('CSVを読み込めませんでした。元のCSVファイルを確認してください。')}
+    e.target.value='';
+  };
+  reader.readAsText(file);
+}
 function clearAll(){if(confirm('保存したすべての記録を削除します。よろしいですか？')){localStorage.removeItem('dailyConditionEntries');renderAll();loadDate()}}
 $('date').value=today();$('date').addEventListener('change',loadDate);$('range-filters').querySelectorAll('button').forEach(b=>b.onclick=()=>{range=+b.dataset.range;$('range-filters').querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));renderAll()});makeScale('mood-scale',mood,scaleLabels[0],'mood');makeScale('health-scale',health,scaleLabels[1],'health');renderSymptoms();loadDate();window.addEventListener('resize',()=>{if(!$('chart-view').classList.contains('hidden'))drawChart()});
 if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
