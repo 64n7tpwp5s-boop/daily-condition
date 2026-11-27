@@ -26,8 +26,18 @@ canvas{width:100%;height:190px;display:block}.tabs{display:flex;gap:6px;margin-b
 <body>
 <header><h1>Daily Condition</h1><p>毎日の気分と体調を記録する</p></header>
 <main>
+
+<nav class="panel" id="mainNav" aria-label="ページ切り替え">
+ <div class="tabs" style="margin:0">
+  <button type="button" class="active" data-page="recordsPage">月別の記録</button>
+  <button type="button" data-page="monthlyPage">月間総括</button>
+  <button type="button" data-page="totalPage">累計の傾向</button>
+ </div>
+</nav>
+
+<div id="recordsPage" class="appPage">
 <section class="panel">
-<h2>今日の記録</h2>
+<h2>記録の入力・編集</h2>
 <div class="field"><label for="date">日付</label><input id="date" type="date"></div>
 <div class="two">
 <div class="field"><span class="field-title">気分</span><div class="rating" id="mood"></div></div>
@@ -37,6 +47,27 @@ canvas{width:100%;height:190px;display:block}.tabs{display:flex;gap:6px;margin-b
 <div class="field"><label for="note">メモ</label><textarea id="note" placeholder="気づいたこと、出来事など"></textarea></div>
 <div class="actions"><button class="primary" id="save">記録を保存</button><button class="secondary" id="clear">入力をクリア</button></div>
 <div class="notice" id="message" role="status"></div>
+</section>
+
+
+<section class="panel">
+<h2>表示する月</h2>
+<div class="field"><label for="monthSelect">月を選択</label><select id="monthSelect"></select></div>
+<p class="notice">選択した月の記録だけを表示します。記録データ自体は削除されません。</p>
+</section>
+<section class="panel">
+<div class="entry-head"><h2 style="margin:0">記録一覧</h2><span class="small" id="count"></span></div>
+<div id="entries"></div>
+</section>
+</div>
+<div id="monthlyPage" class="appPage hidden">
+<section class="panel">
+<h2>月間総括</h2>
+<div class="field"><label for="summaryMonth">集計する月</label><select id="summaryMonth"></select></div>
+<div class="stats" id="monthlyStats"></div>
+<div class="field" style="margin-top:16px"><h2 style="margin-bottom:8px">週ごとの平均</h2><div id="weeklySummary" class="small"></div></div>
+<div class="field"><h2 style="margin-bottom:8px">その月の記録</h2><canvas id="monthChart" width="700" height="220"></canvas></div>
+<div class="field"><h2 style="margin-bottom:8px">症状の発生日数</h2><div class="stats" id="monthlySymptoms"></div></div>
 </section>
 <section class="panel">
 <h2>記録の推移</h2>
@@ -48,10 +79,16 @@ canvas{width:100%;height:190px;display:block}.tabs{display:flex;gap:6px;margin-b
 <h2>症状の集計</h2>
 <div class="stats" id="symptomStats"></div>
 </section>
+</div>
+<div id="totalPage" class="appPage hidden">
 <section class="panel">
-<div class="entry-head"><h2 style="margin:0">記録一覧</h2><span class="small" id="count"></span></div>
-<div id="entries"></div>
+<h2>累計の傾向</h2>
+<div class="stats" id="totalStats"></div>
+<div class="field" style="margin-top:16px"><h2 style="margin-bottom:8px">月ごとの平均</h2><canvas id="totalChart" width="700" height="220"></canvas></div>
+<div class="field"><h2 style="margin-bottom:8px">累計の症状日数</h2><div class="stats" id="totalSymptoms"></div></div>
+<p class="notice">集計は現在このブラウザに保存されている全記録を対象にします。</p>
 </section>
+</div>
 <section class="panel">
 <h2>データのバックアップ</h2>
 <div class="actions"><button class="secondary" id="export">CSVを書き出す</button><label class="secondary" style="display:inline-flex;align-items:center;cursor:pointer">CSVを読み込む<input id="import" type="file" accept=".csv,text/csv" hidden></label></div>
@@ -76,7 +113,7 @@ function resetForm(){ $('date').value=today();mood=0;health=0;symptomValues=[0,0
 function save(){const date=$('date').value;if(!date||!mood||!health){$('message').textContent='日付・気分・体調を入力してください。';return}const item={date,mood,health,symptoms:[...symptomValues],note:$('note').value};const i=records.findIndex(r=>r.date===date);if(i>=0)records[i]=item;else records.push(item);records.sort((a,b)=>b.date.localeCompare(a.date));persist();renderAll();$('message').textContent='保存しました。';}
 function edit(date){const r=records.find(x=>x.date===date);if(!r)return;$('date').value=r.date;mood=r.mood;health=r.health;symptomValues=[...r.symptoms];$('note').value=r.note;renderRatings();renderSymptoms();window.scrollTo({top:0,behavior:'smooth'});$('message').textContent='編集内容を変更して「記録を保存」を押してください。'}
 function removeRecord(date){if(!confirm(date+' の記録を削除しますか？'))return;records=records.filter(r=>r.date!==date);persist();renderAll()}
-function renderEntries(){const root=$('entries');root.innerHTML='';$('count').textContent=records.length+'件';if(!records.length){root.textContent='まだ記録がありません。';return}records.forEach(r=>{const el=document.createElement('div');el.className='entry';const head=document.createElement('div');head.className='entry-head';const d=document.createElement('span');d.className='entry-date';d.textContent=r.date+'　気分 '+r.mood+'/5・体調 '+r.health+'/5';const acts=document.createElement('div');acts.className='entry-actions';const e=document.createElement('button');e.textContent='編集';e.onclick=()=>edit(r.date);const del=document.createElement('button');del.textContent='削除';del.onclick=()=>removeRecord(r.date);acts.append(e,del);head.append(d,acts);el.append(head);const active=r.symptoms.map((v,i)=>v? symptoms[i]+': '+levels[v]:'').filter(Boolean);const p=document.createElement('p');p.textContent=(active.length?active.join('・'):'症状なし')+(r.note?'\\n'+r.note:'');el.append(p);root.append(el)})}
+function renderEntries(){const root=$('entries');root.innerHTML='';const selected=$('monthSelect')?.value||'';const shown=records.filter(r=>!selected||r.date.slice(0,7)===selected);$('count').textContent=shown.length+'件';if(!shown.length){root.textContent='この月の記録はありません。';return}shown.forEach(r=>{const el=document.createElement('div');el.className='entry';const head=document.createElement('div');head.className='entry-head';const d=document.createElement('span');d.className='entry-date';d.textContent=r.date+'　気分 '+r.mood+'/5・体調 '+r.health+'/5';const acts=document.createElement('div');acts.className='entry-actions';const e=document.createElement('button');e.textContent='編集';e.onclick=()=>edit(r.date);const del=document.createElement('button');del.textContent='削除';del.onclick=()=>removeRecord(r.date);acts.append(e,del);head.append(d,acts);el.append(head);const active=r.symptoms.map((v,i)=>v? symptoms[i]+': '+levels[v]:'').filter(Boolean);const p=document.createElement('p');p.textContent=(active.length?active.join('・'):'症状なし')+(r.note?'\\n'+r.note:'');el.append(p);root.append(el)})}
 function renderStats(){const root=$('symptomStats');root.innerHTML='';symptoms.forEach((s,i)=>{const n=records.filter(r=>r.symptoms[i]>0).length;const box=document.createElement('div');box.className='stat';const strong=document.createElement('strong');strong.textContent=n;const span=document.createElement('span');span.textContent=s+'の日';box.append(strong,span);root.append(box)})}
 function drawChart(){
  const c=$('chart');
@@ -110,7 +147,48 @@ function drawChart(){
  const labelIndexes=[...new Set([0,Math.floor((days.length-1)/2),days.length-1])];
  labelIndexes.forEach(i=>{const x=pad.l+i*cw/(days.length-1);ctx.fillText(days[i].slice(5),Math.max(0,Math.min(w-34,x-15)),h-5)});
 }
-function renderAll(){renderEntries();renderStats();drawChart()}
+function monthsAvailable(){
+ const set=new Set(records.map(r=>r.date.slice(0,7)));
+ if(!set.size)set.add(today().slice(0,7));
+ return [...set].sort((a,b)=>b.localeCompare(a));
+}
+function fillMonthSelects(){
+ const months=monthsAvailable();
+ ['monthSelect','summaryMonth'].forEach(id=>{
+  const el=$(id);if(!el)return;
+  const previous=el.value;
+  el.innerHTML='';
+  months.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m.replace('-','年')+'月';el.append(o)});
+  el.value=months.includes(previous)?previous:months[0];
+ });
+}
+function average(items,key){const vals=items.map(r=>Number(r[key])).filter(v=>v>=1&&v<=5);return vals.length?(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1):'--'}
+function statBox(value,label){const box=document.createElement('div');box.className='stat';const strong=document.createElement('strong');strong.textContent=value;const span=document.createElement('span');span.textContent=label;box.append(strong,span);return box}
+function drawSeriesChart(canvasId, labels, rows){
+ const c=$(canvasId);if(!c)return;
+ const rect=c.getBoundingClientRect(),dpr=window.devicePixelRatio||1,w=Math.max(280,Math.floor(rect.width||700)),h=190;
+ c.width=w*dpr;c.height=h*dpr;c.style.height=h+'px';const ctx=c.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
+ const p={l:30,r:12,t:12,b:25},cw=w-p.l-p.r,ch=h-p.t-p.b;
+ ctx.font='11px sans-serif';ctx.fillStyle='#718078';ctx.strokeStyle='#e3e9e5';
+ for(let n=1;n<=5;n++){const y=p.t+ch-(n-1)*ch/4;ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(w-p.r,y);ctx.stroke();ctx.fillText(String(n),7,y+4)}
+ [['mood','#355d4d'],['health','#d18b45']].forEach(([key,color])=>{ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=2.5;let pts=[];rows.forEach((r,i)=>{const v=Number(r[key]);if(v>=1&&v<=5){const x=p.l+(labels.length<2?cw/2:i*cw/(labels.length-1));pts.push({x,y:p.t+ch-(v-1)*ch/4})}});if(pts.length){ctx.beginPath();pts.forEach((pt,i)=>i?ctx.lineTo(pt.x,pt.y):ctx.moveTo(pt.x,pt.y));ctx.stroke();pts.forEach(pt=>{ctx.beginPath();ctx.arc(pt.x,pt.y,3,0,Math.PI*2);ctx.fill()})}});
+ ctx.fillStyle='#718078';ctx.font='10px sans-serif';[...new Set([0,Math.floor((labels.length-1)/2),labels.length-1])].filter(i=>i>=0).forEach(i=>{const x=p.l+(labels.length<2?cw/2:i*cw/(labels.length-1));ctx.fillText(String(labels[i]).slice(-5),Math.max(0,Math.min(w-34,x-15)),h-5)});
+}
+function renderMonthlySummary(){
+ const month=$('summaryMonth')?.value||today().slice(0,7),items=records.filter(r=>r.date.slice(0,7)===month).sort((a,b)=>a.date.localeCompare(b.date));
+ const stats=$('monthlyStats');if(stats){stats.innerHTML='';stats.append(statBox(items.length,'記録日数'),statBox(average(items,'mood'),'気分平均'),statBox(average(items,'health'),'体調平均'))}
+ const symptomsRoot=$('monthlySymptoms');if(symptomsRoot){symptomsRoot.innerHTML='';symptoms.forEach((name,i)=>symptomsRoot.append(statBox(items.filter(r=>r.symptoms[i]>0).length,name+'の発生日数')))}
+ const weeks={};items.forEach(r=>{const day=Number(r.date.slice(8,10));const wk=Math.floor((day-1)/7)+1;(weeks[wk]??=[]).push(r)});
+ const wr=$('weeklySummary');if(wr){wr.innerHTML='';if(!items.length)wr.textContent='この月の記録はありません。';else Object.entries(weeks).forEach(([wk,rs])=>{const line=document.createElement('div');line.style.padding='5px 0';line.textContent=`第${wk}週：気分 ${average(rs,'mood')} / 体調 ${average(rs,'health')}（${rs.length}日）`;wr.append(line)})}
+ drawSeriesChart('monthChart',items.map(r=>r.date.slice(8)),items);
+}
+function renderTotalSummary(){
+ const stats=$('totalStats');if(stats){stats.innerHTML='';stats.append(statBox(records.length,'総記録日数'),statBox(average(records,'mood'),'累計 気分平均'),statBox(average(records,'health'),'累計 体調平均'))}
+ const root=$('totalSymptoms');if(root){root.innerHTML='';symptoms.forEach((name,i)=>root.append(statBox(records.filter(r=>r.symptoms[i]>0).length,name+'の発生日数')))}
+ const byMonth={};records.forEach(r=>(byMonth[r.date.slice(0,7)]??=[]).push(r));
+ const months=Object.keys(byMonth).sort();drawSeriesChart('totalChart',months,months.map(m=>({mood:Number(average(byMonth[m],'mood')),health:Number(average(byMonth[m],'health'))})));
+}
+function renderAll(){fillMonthSelects();renderEntries();renderStats();drawChart();renderMonthlySummary();renderTotalSummary()}
 function csvEscape(v){const s=String(v??'');return /[",\\r\\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}
 function exportCSV(){const header=['date','mood','health','headache','irritability','fatigue','note'];const rows=[header,...records.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(r=>[r.date,r.mood,r.health,...r.symptoms,r.note])];const csv='\\uFEFF'+rows.map(row=>row.map(csvEscape).join(',')).join('\\r\\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='daily-condition.csv';a.click();URL.revokeObjectURL(url)}
 function parseCSV(text){text=text.replace(/^\\uFEFF/,'');const rows=[];let row=[],field='',quoted=false;for(let i=0;i<text.length;i++){const ch=text[i];if(quoted){if(ch==='"'){if(text[i+1]==='"'){field+='"';i++}else quoted=false}else field+=ch}else{if(ch==='"'){if(field.length)throw Error('不正な引用符があります');quoted=true}else if(ch===','){row.push(field);field=''}else if(ch==='\\n'){row.push(field);field='';if(row.some(x=>x!==''))rows.push(row);row=[]}else if(ch==='\\r'){if(text[i+1]==='\\n')i++;row.push(field);field='';if(row.some(x=>x!==''))rows.push(row);row=[]}else field+=ch}}if(quoted)throw Error('CSVの引用符が閉じていません');row.push(field);if(row.some(x=>x!==''))rows.push(row);return rows}
@@ -118,7 +196,15 @@ function importCSV(file){const reader=new FileReader();reader.onload=()=>{try{co
 makeRating('mood','mood');makeRating('health','health');buildSymptoms();resetForm();renderAll();
 $('save').addEventListener('click',save);$('clear').addEventListener('click',resetForm);$('export').addEventListener('click',exportCSV);$('import').addEventListener('change',e=>{if(e.target.files[0])importCSV(e.target.files[0])});
 document.querySelectorAll('[data-days]').forEach(b=>b.addEventListener('click',()=>{chartDays=Number(b.dataset.days);document.querySelectorAll('[data-days]').forEach(x=>x.classList.toggle('active',x===b));drawChart()}));
-window.addEventListener('resize',drawChart);
+window.addEventListener('resize',()=>{drawChart();renderMonthlySummary();renderTotalSummary()});
+$('monthSelect')?.addEventListener('change',renderEntries);
+$('summaryMonth')?.addEventListener('change',renderMonthlySummary);
+document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>{
+ document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x===b));
+ document.querySelectorAll('.appPage').forEach(x=>x.classList.toggle('hidden',x.id!==b.dataset.page));
+ if(b.dataset.page==='monthlyPage')renderMonthlySummary();
+ if(b.dataset.page==='totalPage')renderTotalSummary();
+}));
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 </script>
 </body></html>
