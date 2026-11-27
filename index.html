@@ -7,127 +7,86 @@
 <link rel="manifest" href="manifest.webmanifest">
 <title>Daily Condition</title>
 <style>
-:root{color-scheme:light;--ink:#24332e;--muted:#718078;--line:#e3e9e5;--bg:#f4f7f4;--card:#fff;--accent:#426b5b;--soft:#eaf1ec}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;padding:env(safe-area-inset-top) 14px calc(24px + env(safe-area-inset-bottom))}
-main{max-width:680px;margin:auto}.top{padding:22px 4px 12px}.eyebrow{font-size:12px;color:var(--muted);letter-spacing:.08em}.top h1{font-size:25px;margin:5px 0}.top p{margin:5px 0;color:var(--muted);font-size:13px}
-nav{display:flex;gap:8px;margin:12px 0 16px}nav button{flex:1;padding:11px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);font-weight:650}nav button.active{background:var(--accent);color:white;border-color:var(--accent)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:17px;margin:12px 0;box-shadow:0 3px 12px #1b332008}
-h2{font-size:16px;margin:0 0 14px}.date-row{display:flex;align-items:center;justify-content:space-between;gap:10px}.date-row input{font:inherit;border:1px solid var(--line);border-radius:10px;padding:9px;background:white;color:var(--ink)}
-.field{margin:17px 0}.field-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}.field-head label{font-weight:650}.score{font-size:14px;color:var(--accent);font-weight:700}
-.scale{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.scale button,.symptoms button{border:1px solid var(--line);background:white;border-radius:11px;padding:11px 4px;color:var(--ink);font-size:13px}.scale button.selected,.symptoms button.selected{background:var(--soft);border:2px solid var(--accent);padding:10px 3px;font-weight:700}
-.scale small{display:block;color:var(--muted);font-size:10px;margin-top:3px}
-.symptoms{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.symptoms button{padding:12px 2px}
-textarea{width:100%;min-height:76px;resize:vertical;border:1px solid var(--line);border-radius:12px;padding:11px;font:inherit;font-size:14px}
-.primary{width:100%;border:0;border-radius:13px;padding:14px;background:var(--accent);color:#fff;font-size:15px;font-weight:700;margin-top:7px}.secondary{border:1px solid var(--line);background:white;color:var(--ink);border-radius:11px;padding:10px 12px;font-weight:600}
-.hidden{display:none!important}.hint{font-size:12px;color:var(--muted);line-height:1.6}.chart-wrap{height:230px;position:relative}.chart-wrap canvas{width:100%;height:100%}.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:8px 0}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
-.filters{display:flex;gap:7px}.filters button{flex:1}.filters button.active{background:var(--soft);border-color:var(--accent)}
-.entry{border-top:1px solid var(--line);padding:12px 0}.entry:first-child{border-top:0}.entry-top{display:flex;justify-content:space-between;gap:8px}.entry strong{font-size:14px}.entry p{font-size:12px;color:var(--muted);margin:7px 0 0;white-space:pre-wrap}.tag{display:inline-block;background:var(--soft);border-radius:7px;padding:4px 7px;font-size:11px;margin:5px 4px 0 0}
-.actions{display:flex;gap:7px;align-items:center}.actions button{font-size:12px;padding:7px 9px}
-.empty{text-align:center;color:var(--muted);font-size:13px;padding:24px 8px}
-footer{text-align:center;color:var(--muted);font-size:11px;padding:18px 4px}
-@media(min-width:560px){body{padding-left:24px;padding-right:24px}.card{padding:21px}}
+:root{color-scheme:light;--ink:#24332e;--muted:#718078;--line:#e3e9e5;--bg:#f4f7f4;--accent:#355d4d;--soft:#e8f0eb}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;line-height:1.55}
+header{background:#263b35;color:white;padding:22px 18px 18px}header h1{font-size:22px;margin:0;font-weight:700}header p{margin:4px 0 0;color:#d1ddd6;font-size:12px}
+main{max-width:760px;margin:0 auto;padding:16px 14px 48px}.panel{background:white;border:1px solid var(--line);border-radius:16px;padding:16px;margin:0 0 14px;box-shadow:0 2px 10px #24332e08}
+h2{font-size:16px;margin:0 0 13px}.field{margin:0 0 15px}.field:last-child{margin-bottom:0}label,.field-title{display:block;font-size:13px;font-weight:650;margin-bottom:7px}
+input[type=date],select,textarea{width:100%;font:inherit;color:var(--ink);border:1px solid #d5dfd8;border-radius:10px;padding:11px;background:#fff}
+textarea{min-height:90px;resize:vertical}.rating{display:flex;gap:8px}.rating button{flex:1;border:1px solid #d5dfd8;background:white;border-radius:10px;padding:10px 0;color:var(--ink);font-size:15px}.rating button.active{background:var(--accent);color:white;border-color:var(--accent)}
+.symptoms{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.symptoms button{border:1px solid #d5dfd8;background:white;border-radius:9px;padding:9px 2px;font-size:12px;color:var(--ink)}.symptoms button.active{background:var(--soft);border-color:var(--accent);font-weight:700}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.primary,.secondary,.danger{border:0;border-radius:10px;padding:11px 15px;font:inherit;font-size:13px;font-weight:700}.primary{background:var(--accent);color:white;flex:1}.secondary{background:var(--soft);color:var(--ink)}.danger{background:#fff0ed;color:#a13b2d}
+.small{font-size:12px;color:var(--muted)}.entry{border-top:1px solid var(--line);padding:12px 0}.entry:first-child{border-top:0}.entry-head{display:flex;justify-content:space-between;align-items:center;gap:8px}.entry-date{font-weight:700}.entry p{margin:5px 0 0;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}.entry-actions{display:flex;gap:6px}.entry-actions button{border:0;background:var(--soft);border-radius:8px;padding:6px 10px;color:var(--ink);font-size:12px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat{background:var(--soft);border-radius:10px;padding:10px;text-align:center}.stat strong{display:block;font-size:21px}.stat span{font-size:11px;color:var(--muted)}
+canvas{width:100%;height:190px;display:block}.tabs{display:flex;gap:6px;margin-bottom:12px}.tabs button{flex:1;border:1px solid var(--line);background:white;border-radius:9px;padding:8px;font-size:12px}.tabs button.active{background:var(--accent);color:white}
+.notice{font-size:12px;color:var(--muted);margin-top:9px}.hidden{display:none!important}
+@media(min-width:620px){main{padding-top:22px}.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}.two .panel{margin-bottom:14px}}
 </style>
 </head>
 <body>
+<header><h1>Daily Condition</h1><p>毎日の気分と体調を記録する</p></header>
 <main>
-<header class="top"><div class="eyebrow">DAILY WELLNESS LOG</div><h1>Daily Condition</h1><p>毎日の状態を、無理なく記録。</p></header>
-<nav><button id="tab-entry" class="active" onclick="showTab('entry')">今日の記録</button><button id="tab-chart" onclick="showTab('chart')">グラフ・履歴</button></nav>
-<section id="entry-view">
-<div class="card">
-<div class="date-row"><h2>日々のコンディション</h2><input id="date" type="date"></div>
-<div class="field"><div class="field-head"><label>気分</label><span class="score" id="mood-score">3 / 5</span></div><div class="scale" id="mood-scale"></div></div>
-<div class="field"><div class="field-head"><label>体調</label><span class="score" id="health-score">3 / 5</span></div><div class="scale" id="health-scale"></div></div>
+<section class="panel">
+<h2>今日の記録</h2>
+<div class="field"><label for="date">日付</label><input id="date" type="date"></div>
+<div class="two">
+<div class="field"><span class="field-title">気分</span><div class="rating" id="mood"></div></div>
+<div class="field"><span class="field-title">体調</span><div class="rating" id="health"></div></div>
 </div>
-<div class="card"><h2>症状・体感</h2><p class="hint">それぞれ、当てはまる強さを選んでね。</p><div id="symptom-fields"></div></div>
-<div class="card"><h2>メモ（任意）</h2><textarea id="note" placeholder="睡眠、出来事、気づいたことなど"></textarea><p class="hint">入力はこのブラウザ内に保存されます。</p><button class="primary" onclick="saveEntry()">この日の記録を保存</button></div>
+<div class="field"><span class="field-title">症状</span><div id="symptomRows"></div></div>
+<div class="field"><label for="note">メモ</label><textarea id="note" placeholder="気づいたこと、出来事など"></textarea></div>
+<div class="actions"><button class="primary" id="save">記録を保存</button><button class="secondary" id="clear">入力をクリア</button></div>
+<div class="notice" id="message" role="status"></div>
 </section>
-<section id="chart-view" class="hidden">
-<div class="card"><h2>気分・体調の推移</h2><div class="filters" id="range-filters"><button class="secondary active" data-range="7">7日</button><button class="secondary" data-range="30">30日</button><button class="secondary" data-range="90">90日</button></div><div class="chart-wrap"><canvas id="chart"></canvas></div><div class="legend"><span><i class="dot" style="background:#426b5b"></i>気分</span><span><i class="dot" style="background:#d18a48"></i>体調</span></div><p class="hint">1が低い・悪い、5が高い・良い。記録がある日のみ表示します。</p></div>
-<div class="card"><h2>症状の傾向</h2><div id="symptom-summary" class="hint">記録が増えると、症状の出現日数を表示します。</div></div>
-<div class="card"><div class="date-row"><h2>記録一覧</h2><div class="actions"><button class="secondary" onclick="exportCSV()">CSV出力</button></div></div><div id="history"></div></div>
-<div class="card"><h2>データ管理</h2><div class="actions"><button class="secondary" onclick="document.getElementById('import-file').click()">CSVを読み込む</button><button class="secondary" onclick="clearAll()">全記録を削除</button></div><input id="import-file" type="file" accept=".csv,text/csv" class="hidden" onchange="importCSV(event)"><p class="hint">機種変更やバックアップのため、時々CSVを保存しておくのがおすすめです。</p></div>
+<section class="panel">
+<h2>記録の推移</h2>
+<div class="tabs"><button data-days="7" class="active">7日</button><button data-days="30">30日</button><button data-days="90">90日</button></div>
+<canvas id="chart" width="700" height="220" aria-label="気分と体調の推移"></canvas>
+<div class="small">気分・体調（1〜5）</div>
 </section>
-<footer>このアプリは自己観察用の記録ツールです。医療的な診断を行うものではありません。</footer>
+<section class="panel">
+<h2>症状の集計</h2>
+<div class="stats" id="symptomStats"></div>
+</section>
+<section class="panel">
+<div class="entry-head"><h2 style="margin:0">記録一覧</h2><span class="small" id="count"></span></div>
+<div id="entries"></div>
+</section>
+<section class="panel">
+<h2>データのバックアップ</h2>
+<div class="actions"><button class="secondary" id="export">CSVを書き出す</button><label class="secondary" style="display:inline-flex;align-items:center;cursor:pointer">CSVを読み込む<input id="import" type="file" accept=".csv,text/csv" hidden></label></div>
+<p class="notice">記録はこのブラウザ内に保存されます。機種変更やブラウザ変更の前にCSVを書き出してください。</p>
+</section>
 </main>
 <script>
-const symptomDefs=[['headache','頭痛'],['irritability','イライラ'],['fatigue','疲労感']];
+const KEY='dailyConditionRecords';
+const symptoms=['頭痛','イライラ','疲労感'];
 const levels=['なし','軽い','中程度','強い'];
-const scaleLabels=[['低い','やや低い','普通','良い','とても良い'],['悪い','やや悪い','普通','良い','とても良い']];
-let mood=3,health=3,symptoms={headache:0,irritability:0,fatigue:0},range=7;
+let records=loadRecords(), mood=0, health=0, symptomValues=[0,0,0], chartDays=7;
 const $=id=>document.getElementById(id);
-const today=()=>new Date().toLocaleDateString('sv-SE');
-function getData(){try{return JSON.parse(localStorage.getItem('dailyConditionEntries')||'{}')}catch(e){return {}}}
-function setData(d){localStorage.setItem('dailyConditionEntries',JSON.stringify(d))}
-function makeScale(id,val,labels,kind){$(id).innerHTML='';for(let n=1;n<=5;n++){let b=document.createElement('button');b.className=n===val?'selected':'';b.innerHTML=n+'<small>'+labels[n-1]+'</small>';b.onclick=()=>{if(kind==='mood'){mood=n;$('mood-score').textContent=n+' / 5';}else{health=n;$('health-score').textContent=n+' / 5';}makeScale(id,n,labels,kind)};$(id).append(b)}}
-function renderSymptoms(){ $('symptom-fields').innerHTML='';symptomDefs.forEach(([key,label])=>{let wrap=document.createElement('div');wrap.className='field';let head=document.createElement('div');head.className='field-head';head.innerHTML='<label>'+label+'</label><span class="score">'+levels[symptoms[key]]+'</span>';let choices=document.createElement('div');choices.className='symptoms';levels.forEach((v,i)=>{let b=document.createElement('button');b.textContent=v;b.className=symptoms[key]===i?'selected':'';b.onclick=()=>{symptoms[key]=i;renderSymptoms()};choices.append(b)});wrap.append(head,choices);$('symptom-fields').append(wrap)})}
-function loadDate(){let d=getData()[$('date').value];mood=d?.mood??3;health=d?.health??3;symptoms=d?.symptoms??{headache:0,irritability:0,fatigue:0};$('note').value=d?.note??'';makeScale('mood-scale',mood,scaleLabels[0],'mood');makeScale('health-scale',health,scaleLabels[1],'health');$('mood-score').textContent=mood+' / 5';$('health-score').textContent=health+' / 5';renderSymptoms()}
-function saveEntry(){let data=getData();data[$('date').value]={mood,health,symptoms:{...symptoms},note:$('note').value.trim()};setData(data);alert('記録を保存しました');renderAll()}
-function showTab(tab){$('entry-view').classList.toggle('hidden',tab!=='entry');$('chart-view').classList.toggle('hidden',tab!=='chart');$('tab-entry').classList.toggle('active',tab==='entry');$('tab-chart').classList.toggle('active',tab==='chart');if(tab==='chart')renderAll()}
-function filtered(){let data=getData(),cut=new Date();cut.setDate(cut.getDate()-(range-1));let min=cut.toLocaleDateString('sv-SE');return Object.entries(data).filter(([d])=>d>=min&&d<=today()).sort((a,b)=>a[0].localeCompare(b[0]))}
-function drawChart(){let c=$('chart'),ctx=c.getContext('2d'),w=c.clientWidth,h=c.clientHeight,dpr=window.devicePixelRatio||1;c.width=w*dpr;c.height=h*dpr;ctx.scale(dpr,dpr);ctx.clearRect(0,0,w,h);let rows=filtered(),pad={l:28,r:12,t:15,b:28},cw=w-pad.l-pad.r,ch=h-pad.t-pad.b;ctx.font='11px sans-serif';ctx.strokeStyle='#e7ece8';ctx.fillStyle='#78847d';for(let v=1;v<=5;v++){let y=pad.t+ch-(v-1)*ch/4;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();ctx.fillText(v,pad.l-18,y+4)}if(!rows.length){ctx.fillText('記録がまだありません',pad.l+12,h/2);return}let start=new Date();start.setDate(start.getDate()-(range-1));start.setHours(0,0,0,0);let end=new Date();end.setHours(0,0,0,0);let span=Math.max(1,end-start);[['mood','#426b5b'],['health','#d18a48']].forEach(([key,color])=>{ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=2.5;ctx.beginPath();rows.forEach(([date,obj],i)=>{let x=pad.l+(new Date(date+'T00:00:00')-start)/span*cw,y=pad.t+ch-(obj[key]-1)*ch/4;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});ctx.stroke();rows.forEach(([date,obj])=>{let x=pad.l+(new Date(date+'T00:00:00')-start)/span*cw,y=pad.t+ch-(obj[key]-1)*ch/4;ctx.beginPath();ctx.arc(x,y,3.5,0,Math.PI*2);ctx.fill()})});ctx.fillStyle='#78847d';ctx.fillText(range+'日間',pad.l,h-7)}
-function renderAll(){drawChart();let rows=Object.entries(getData()).sort((a,b)=>b[0].localeCompare(a[0]));$('history').innerHTML='';if(!rows.length)$('history').innerHTML='<div class="empty">まだ記録がありません</div>';rows.forEach(([date,d])=>{let el=document.createElement('div');el.className='entry';let tags=symptomDefs.map(([k,n])=>d.symptoms?.[k]>0?`<span class="tag">${n}: ${levels[d.symptoms[k]]}</span>`:'').join('');el.innerHTML=`<div class="entry-top"><strong>${date}　気分 ${d.mood}/5 ・体調 ${d.health}/5</strong><button class="secondary" data-date="${date}">編集</button></div><div>${tags}</div>${d.note?'<p>'+escapeHTML(d.note)+'</p>':''}`;el.querySelector('button').onclick=()=>{showTab('entry');$('date').value=date;loadDate()};$('history').append(el)});let all=Object.values(getData());$('symptom-summary').innerHTML=symptomDefs.map(([k,n])=>{let count=all.filter(d=>(d.symptoms?.[k]||0)>0).length;return `<div style="margin:8px 0"><b>${n}</b>：${count}日 / ${all.length}日</div>`}).join('')||'記録が増えると、症状の出現日数を表示します。'}
-function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function exportCSV(){let rows=Object.entries(getData()).sort((a,b)=>a[0].localeCompare(b[0]));let header=['date','mood','health','headache','irritability','fatigue','note'];let lines=[header,...rows.map(([date,d])=>[date,d.mood,d.health,...symptomDefs.map(([k])=>d.symptoms?.[k]||0),d.note||''])].map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(','));let blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='daily-condition.csv';a.click();URL.revokeObjectURL(url)}
-
-/* CSVを引用符・カンマ・セル内改行に対応して解析する */
-function parseCSV(text){
-  const rows=[];let row=[],field='',quoted=false;
-  for(let i=0;i<text.length;i++){
-    const ch=text[i];
-    if(quoted){
-      if(ch==='"'){
-        if(text[i+1]==='"'){field+='"';i++;}
-        else quoted=false;
-      }else field+=ch;
-    }else{
-      if(ch==='"' && field==='') quoted=true;
-      else if(ch===','){row.push(field);field='';}
-      else if(ch==='\n'){row.push(field);rows.push(row);row=[];field='';}
-      else if(ch==='\r'){if(text[i+1]==='\n')i++;row.push(field);rows.push(row);row=[];field='';}
-      else field+=ch;
-    }
-  }
-  if(field!==''||row.length){row.push(field);rows.push(row);}
-  return rows;
-}
-function validDate(s){if(!/^\d{4}-\d{2}-\d{2}$/.test(s))return false;const d=new Date(s+'T00:00:00');return !Number.isNaN(d.getTime())&&d.toLocaleDateString('sv-SE')===s;}
-function validScore(v,min,max){return Number.isInteger(Number(v))&&Number(v)>=min&&Number(v)<=max;}
-function isValidEntry(date,d){return validDate(date)&&validScore(d?.mood,1,5)&&validScore(d?.health,1,5);}
-function importCSV(e){
-  const file=e.target.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=()=>{
-    try{
-      const csv=String(reader.result||'').replace(/^\ufeff/,'');
-      const rows=parseCSV(csv);
-      if(rows.length<2)throw new Error('empty');
-      const header=rows[0].map(v=>String(v).trim().toLowerCase());
-      const idx={date:header.indexOf('date'),mood:header.indexOf('mood'),health:header.indexOf('health'),headache:header.indexOf('headache'),irritability:header.indexOf('irritability'),fatigue:header.indexOf('fatigue'),note:header.indexOf('note')};
-      if(idx.date<0||idx.mood<0||idx.health<0||idx.note<0)throw new Error('header');
-      const data=getData();
-      /* 既存の不正レコードだけを除き、有効な記録は保持する */
-      Object.keys(data).forEach(date=>{if(!isValidEntry(date,data[date]))delete data[date];});
-      let imported=0,skipped=0;
-      rows.slice(1).forEach(cols=>{
-        if(!cols.length||cols.every(v=>String(v).trim()===''))return;
-        const date=String(cols[idx.date]??'').trim();
-        const m=Number(cols[idx.mood]),h=Number(cols[idx.health]);
-        const sh=Number(cols[idx.headache]??0),si=Number(cols[idx.irritability]??0),sf=Number(cols[idx.fatigue]??0);
-        if(!validDate(date)||!validScore(m,1,5)||!validScore(h,1,5)||!validScore(sh,0,3)||!validScore(si,0,3)||!validScore(sf,0,3)){skipped++;return;}
-        data[date]={mood:m,health:h,symptoms:{headache:sh,irritability:si,fatigue:sf},note:String(cols[idx.note]??'')};
-        imported++;
-      });
-      if(imported===0)throw new Error('no-valid-rows');
-      setData(data);renderAll();
-      alert(`CSVを読み込みました。\\n読み込み：${imported}件${skipped?`\\n形式不正のためスキップ：${skipped}件`:''}`);
-    }catch(err){alert('CSVを読み込めませんでした。元のCSVファイルを確認してください。');}
-    e.target.value='';
-  };
-  reader.onerror=()=>{alert('CSVファイルを読み込めませんでした。');e.target.value='';};
-  reader.readAsText(file,'UTF-8');
-}
-function clearAll(){if(confirm('保存したすべての記録を削除します。よろしいですか？')){localStorage.removeItem('dailyConditionEntries');renderAll();loadDate()}}
-$('date').value=today();$('date').addEventListener('change',loadDate);$('range-filters').querySelectorAll('button').forEach(b=>b.onclick=()=>{range=+b.dataset.range;$('range-filters').querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));renderAll()});makeScale('mood-scale',mood,scaleLabels[0],'mood');makeScale('health-scale',health,scaleLabels[1],'health');renderSymptoms();loadDate();window.addEventListener('resize',()=>{if(!$('chart-view').classList.contains('hidden'))drawChart()});
-if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+function today(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function loadRecords(){try{const v=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(v)?v.filter(validRecord):[]}catch(e){return []}}
+function validRecord(r){return r&&typeof r.date==='string'&&/^\\d{4}-\\d{2}-\\d{2}$/.test(r.date)&&Number.isInteger(r.mood)&&r.mood>=1&&r.mood<=5&&Number.isInteger(r.health)&&r.health>=1&&r.health<=5&&Array.isArray(r.symptoms)&&r.symptoms.length===3&&r.symptoms.every(x=>Number.isInteger(x)&&x>=0&&x<=3)&&typeof r.note==='string'}
+function persist(){localStorage.setItem(KEY,JSON.stringify(records))}
+function makeRating(id,type){const root=$(id);root.innerHTML='';for(let n=1;n<=5;n++){const b=document.createElement('button');b.type='button';b.textContent=n;b.addEventListener('click',()=>{if(type==='mood')mood=n;else health=n;renderRatings()});root.append(b)}}
+function renderRatings(){[['mood',mood],['health',health]].forEach(([id,val])=>[...$(id).children].forEach((b,i)=>b.classList.toggle('active',i+1===val)))}
+function buildSymptoms(){const root=$('symptomRows');root.innerHTML='';symptoms.forEach((s,i)=>{const wrap=document.createElement('div');wrap.className='field';const label=document.createElement('div');label.className='field-title';label.textContent=s;const row=document.createElement('div');row.className='symptoms';levels.forEach((v,n)=>{const b=document.createElement('button');b.type='button';b.textContent=v;b.addEventListener('click',()=>{symptomValues[i]=n;renderSymptoms()});row.append(b)});wrap.append(label,row);root.append(wrap)})}
+function renderSymptoms(){[...$('symptomRows').children].forEach((wrap,i)=>[...wrap.querySelectorAll('button')].forEach((b,n)=>b.classList.toggle('active',symptomValues[i]===n)))}
+function resetForm(){ $('date').value=today();mood=0;health=0;symptomValues=[0,0,0];$('note').value='';renderRatings();renderSymptoms();$('message').textContent=''}
+function save(){const date=$('date').value;if(!date||!mood||!health){$('message').textContent='日付・気分・体調を入力してください。';return}const item={date,mood,health,symptoms:[...symptomValues],note:$('note').value};const i=records.findIndex(r=>r.date===date);if(i>=0)records[i]=item;else records.push(item);records.sort((a,b)=>b.date.localeCompare(a.date));persist();renderAll();$('message').textContent='保存しました。';}
+function edit(date){const r=records.find(x=>x.date===date);if(!r)return;$('date').value=r.date;mood=r.mood;health=r.health;symptomValues=[...r.symptoms];$('note').value=r.note;renderRatings();renderSymptoms();window.scrollTo({top:0,behavior:'smooth'});$('message').textContent='編集内容を変更して「記録を保存」を押してください。'}
+function removeRecord(date){if(!confirm(date+' の記録を削除しますか？'))return;records=records.filter(r=>r.date!==date);persist();renderAll()}
+function renderEntries(){const root=$('entries');root.innerHTML='';$('count').textContent=records.length+'件';if(!records.length){root.textContent='まだ記録がありません。';return}records.forEach(r=>{const el=document.createElement('div');el.className='entry';const head=document.createElement('div');head.className='entry-head';const d=document.createElement('span');d.className='entry-date';d.textContent=r.date+'　気分 '+r.mood+'/5・体調 '+r.health+'/5';const acts=document.createElement('div');acts.className='entry-actions';const e=document.createElement('button');e.textContent='編集';e.onclick=()=>edit(r.date);const del=document.createElement('button');del.textContent='削除';del.onclick=()=>removeRecord(r.date);acts.append(e,del);head.append(d,acts);el.append(head);const active=r.symptoms.map((v,i)=>v? symptoms[i]+': '+levels[v]:'').filter(Boolean);const p=document.createElement('p');p.textContent=(active.length?active.join('・'):'症状なし')+(r.note?'\\n'+r.note:'');el.append(p);root.append(el)})}
+function renderStats(){const root=$('symptomStats');root.innerHTML='';symptoms.forEach((s,i)=>{const n=records.filter(r=>r.symptoms[i]>0).length;const box=document.createElement('div');box.className='stat';const strong=document.createElement('strong');strong.textContent=n;const span=document.createElement('span');span.textContent=s+'の日';box.append(strong,span);root.append(box)})}
+function drawChart(){const c=$('chart'),ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);const pad={l:35,r:15,t:15,b:28},cw=w-pad.l-pad.r,ch=h-pad.t-pad.b;ctx.font='12px sans-serif';ctx.strokeStyle='#e3e9e5';ctx.fillStyle='#718078';for(let n=1;n<=5;n++){const y=pad.t+ch-(n-1)*ch/4;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();ctx.fillText(n,pad.l-20,y+4)}const end=new Date(today()+'T00:00:00');const days=[];for(let i=chartDays-1;i>=0;i--){const d=new Date(end);d.setDate(d.getDate()-i);days.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`)}const map=new Map(records.map(r=>[r.date,r]));[['mood','#355d4d'],['health','#d18b45']].forEach(([key,color])=>{ctx.strokeStyle=color;ctx.lineWidth=3;ctx.beginPath();let started=false;days.forEach((date,i)=>{const r=map.get(date),v=r&&r[key];if(!v){started=false;return}const x=pad.l+(days.length===1?0:i*cw/(days.length-1)),y=pad.t+ch-(v-1)*ch/4;if(!started){ctx.moveTo(x,y);started=true}else ctx.lineTo(x,y)});ctx.stroke()});ctx.fillStyle='#718078';ctx.font='10px sans-serif';[0,Math.floor((days.length-1)/2),days.length-1].forEach(i=>{const x=pad.l+i*cw/(days.length-1);ctx.fillText(days[i].slice(5),x-16,h-7)})}
+function renderAll(){renderEntries();renderStats();drawChart()}
+function csvEscape(v){const s=String(v??'');return /[",\\r\\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}
+function exportCSV(){const header=['date','mood','health','headache','irritability','fatigue','note'];const rows=[header,...records.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(r=>[r.date,r.mood,r.health,...r.symptoms,r.note])];const csv='\\uFEFF'+rows.map(row=>row.map(csvEscape).join(',')).join('\\r\\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='daily-condition.csv';a.click();URL.revokeObjectURL(url)}
+function parseCSV(text){text=text.replace(/^\\uFEFF/,'');const rows=[];let row=[],field='',quoted=false;for(let i=0;i<text.length;i++){const ch=text[i];if(quoted){if(ch==='"'){if(text[i+1]==='"'){field+='"';i++}else quoted=false}else field+=ch}else{if(ch==='"'){if(field.length)throw Error('不正な引用符があります');quoted=true}else if(ch===','){row.push(field);field=''}else if(ch==='\\n'){row.push(field);field='';if(row.some(x=>x!==''))rows.push(row);row=[]}else if(ch==='\\r'){if(text[i+1]==='\\n')i++;row.push(field);field='';if(row.some(x=>x!==''))rows.push(row);row=[]}else field+=ch}}if(quoted)throw Error('CSVの引用符が閉じていません');row.push(field);if(row.some(x=>x!==''))rows.push(row);return rows}
+function importCSV(file){const reader=new FileReader();reader.onload=()=>{try{const rows=parseCSV(String(reader.result));if(rows.length<2)throw Error('読み込めるデータ行がありません');const header=rows[0].map(x=>x.trim());const expected=['date','mood','health','headache','irritability','fatigue','note'];if(header.length!==7||expected.some((x,i)=>header[i]!==x))throw Error('CSVの形式が異なります');const imported=rows.slice(1).map((r,i)=>{if(r.length!==7)throw Error((i+2)+'行目の列数が一致しません');const item={date:r[0],mood:Number(r[1]),health:Number(r[2]),symptoms:r.slice(3,6).map(Number),note:r[6]};if(!validRecord(item))throw Error((i+2)+'行目の内容が不正です');return item});if(!imported.length)throw Error('有効なデータがありません');const merged=new Map(records.map(r=>[r.date,r]));imported.forEach(r=>merged.set(r.date,r));records=[...merged.values()].sort((a,b)=>b.date.localeCompare(a.date));persist();renderAll();$('message').textContent=imported.length+'件を読み込みました。'}catch(e){alert('CSVを読み込めませんでした。\\n'+e.message+'\\n既存の記録は変更していません。')}finally{$('import').value=''}};reader.onerror=()=>alert('ファイルを読み込めませんでした。');reader.readAsText(file,'UTF-8')}
+makeRating('mood','mood');makeRating('health','health');buildSymptoms();resetForm();renderAll();
+$('save').addEventListener('click',save);$('clear').addEventListener('click',resetForm);$('export').addEventListener('click',exportCSV);$('import').addEventListener('change',e=>{if(e.target.files[0])importCSV(e.target.files[0])});
+document.querySelectorAll('[data-days]').forEach(b=>b.addEventListener('click',()=>{chartDays=Number(b.dataset.days);document.querySelectorAll('[data-days]').forEach(x=>x.classList.toggle('active',x===b));drawChart()}));
+if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 </script>
 </body></html>

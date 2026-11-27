@@ -1,9 +1,1 @@
-{
-  "name": "Daily Condition",
-  "short_name": "Condition",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#f4f7f4",
-  "theme_color": "#263b35",
-  "lang": "ja"
-}
+{"name":"Daily Condition","short_name":"Daily Condition","start_url":"./","display":"standalone","background_color":"#f4f7f4","theme_color":"#263b35","lang":"ja"}
