@@ -53,7 +53,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:18px 4px}
 const symptomDefs=[['headache','頭痛'],['irritability','イライラ'],['fatigue','疲労感']];
 const levels=['なし','軽い','中程度','強い'];
 const scaleLabels=[['低い','やや低い','普通','良い','とても良い'],['悪い','やや悪い','普通','良い','とても良い']];
-let mood=3,health=3, symptoms={headache:0,irritability:0,fatigue:0},range=7;
+let mood=3,health=3,symptoms={headache:0,irritability:0,fatigue:0},range=7;
 const $=id=>document.getElementById(id);
 const today=()=>new Date().toLocaleDateString('sv-SE');
 function getData(){try{return JSON.parse(localStorage.getItem('dailyConditionEntries')||'{}')}catch(e){return {}}}
@@ -66,52 +66,65 @@ function showTab(tab){$('entry-view').classList.toggle('hidden',tab!=='entry');$
 function filtered(){let data=getData(),cut=new Date();cut.setDate(cut.getDate()-(range-1));let min=cut.toLocaleDateString('sv-SE');return Object.entries(data).filter(([d])=>d>=min&&d<=today()).sort((a,b)=>a[0].localeCompare(b[0]))}
 function drawChart(){let c=$('chart'),ctx=c.getContext('2d'),w=c.clientWidth,h=c.clientHeight,dpr=window.devicePixelRatio||1;c.width=w*dpr;c.height=h*dpr;ctx.scale(dpr,dpr);ctx.clearRect(0,0,w,h);let rows=filtered(),pad={l:28,r:12,t:15,b:28},cw=w-pad.l-pad.r,ch=h-pad.t-pad.b;ctx.font='11px sans-serif';ctx.strokeStyle='#e7ece8';ctx.fillStyle='#78847d';for(let v=1;v<=5;v++){let y=pad.t+ch-(v-1)*ch/4;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();ctx.fillText(v,pad.l-18,y+4)}if(!rows.length){ctx.fillText('記録がまだありません',pad.l+12,h/2);return}let start=new Date();start.setDate(start.getDate()-(range-1));start.setHours(0,0,0,0);let end=new Date();end.setHours(0,0,0,0);let span=Math.max(1,end-start);[['mood','#426b5b'],['health','#d18a48']].forEach(([key,color])=>{ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=2.5;ctx.beginPath();rows.forEach(([date,obj],i)=>{let x=pad.l+(new Date(date+'T00:00:00')-start)/span*cw,y=pad.t+ch-(obj[key]-1)*ch/4;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});ctx.stroke();rows.forEach(([date,obj])=>{let x=pad.l+(new Date(date+'T00:00:00')-start)/span*cw,y=pad.t+ch-(obj[key]-1)*ch/4;ctx.beginPath();ctx.arc(x,y,3.5,0,Math.PI*2);ctx.fill()})});ctx.fillStyle='#78847d';ctx.fillText(range+'日間',pad.l,h-7)}
 function renderAll(){drawChart();let rows=Object.entries(getData()).sort((a,b)=>b[0].localeCompare(a[0]));$('history').innerHTML='';if(!rows.length)$('history').innerHTML='<div class="empty">まだ記録がありません</div>';rows.forEach(([date,d])=>{let el=document.createElement('div');el.className='entry';let tags=symptomDefs.map(([k,n])=>d.symptoms?.[k]>0?`<span class="tag">${n}: ${levels[d.symptoms[k]]}</span>`:'').join('');el.innerHTML=`<div class="entry-top"><strong>${date}　気分 ${d.mood}/5 ・体調 ${d.health}/5</strong><button class="secondary" data-date="${date}">編集</button></div><div>${tags}</div>${d.note?'<p>'+escapeHTML(d.note)+'</p>':''}`;el.querySelector('button').onclick=()=>{showTab('entry');$('date').value=date;loadDate()};$('history').append(el)});let all=Object.values(getData());$('symptom-summary').innerHTML=symptomDefs.map(([k,n])=>{let count=all.filter(d=>(d.symptoms?.[k]||0)>0).length;return `<div style="margin:8px 0"><b>${n}</b>：${count}日 / ${all.length}日</div>`}).join('')||'記録が増えると、症状の出現日数を表示します。'}
-function escapeHTML(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function exportCSV(){let rows=Object.entries(getData()).sort((a,b)=>a[0].localeCompare(b[0]));let header=['date','mood','health','headache','irritability','fatigue','note'];let lines=[header,...rows.map(([date,d])=>[date,d.mood,d.health,...symptomDefs.map(([k])=>d.symptoms?.[k]||0),d.note||''])].map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(','));let blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='daily-condition.csv';a.click();URL.revokeObjectURL(url)}
+
+/* CSVを引用符・カンマ・セル内改行に対応して解析する */
 function parseCSV(text){
   const rows=[];let row=[],field='',quoted=false;
   for(let i=0;i<text.length;i++){
     const ch=text[i];
     if(quoted){
-      if(ch==='"'&&text[i+1]==='"'){field+='"';i++}
-      else if(ch==='"')quoted=false;
-      else field+=ch;
+      if(ch==='"'){
+        if(text[i+1]==='"'){field+='"';i++;}
+        else quoted=false;
+      }else field+=ch;
     }else{
-      if(ch==='"')quoted=true;
-      else if(ch===','){row.push(field);field=''}
-      else if(ch==='\n'){row.push(field);rows.push(row);row=[];field=''}
-      else if(ch!=='\r')field+=ch;
+      if(ch==='"' && field==='') quoted=true;
+      else if(ch===','){row.push(field);field='';}
+      else if(ch==='\n'){row.push(field);rows.push(row);row=[];field='';}
+      else if(ch==='\r'){if(text[i+1]==='\n')i++;row.push(field);rows.push(row);row=[];field='';}
+      else field+=ch;
     }
   }
-  if(field.length||row.length){row.push(field);rows.push(row)}
+  if(field!==''||row.length){row.push(field);rows.push(row);}
   return rows;
 }
+function validDate(s){if(!/^\d{4}-\d{2}-\d{2}$/.test(s))return false;const d=new Date(s+'T00:00:00');return !Number.isNaN(d.getTime())&&d.toLocaleDateString('sv-SE')===s;}
+function validScore(v,min,max){return Number.isInteger(Number(v))&&Number(v)>=min&&Number(v)<=max;}
+function isValidEntry(date,d){return validDate(date)&&validScore(d?.mood,1,5)&&validScore(d?.health,1,5);}
 function importCSV(e){
   const file=e.target.files[0];if(!file)return;
   const reader=new FileReader();
   reader.onload=()=>{
     try{
-      const rows=parseCSV(String(reader.result).replace(/^\ufeff/,''));
-      if(!rows.length)throw new Error('empty');
-      const header=rows[0].map(x=>x.trim());
-      const expected=['date','mood','health','headache','irritability','fatigue','note'];
-      if(expected.some((v,i)=>header[i]!==v))throw new Error('header');
-      const existing=getData();const data=Object.fromEntries(Object.entries(existing).filter(([date,record])=>/^\d{4}-\d{2}-\d{2}$/.test(date)&&Number.isInteger(record?.mood)&&record.mood>=1&&record.mood<=5&&Number.isInteger(record?.health)&&record.health>=1&&record.health<=5));let imported=0;
-      rows.slice(1).forEach(vals=>{
-        if(!vals.length||!vals[0])return;
-        const date=vals[0].trim(),m=Number(vals[1]),h=Number(vals[2]);
-        if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isInteger(m)||m<1||m>5||!Number.isInteger(h)||h<1||h>5)return;
-        const nums=vals.slice(3,6).map(Number);
-        if(nums.length!==3||nums.some(n=>!Number.isInteger(n)||n<0||n>3))return;
-        data[date]={mood:m,health:h,symptoms:{headache:nums[0],irritability:nums[1],fatigue:nums[2]},note:vals[6]||''};
+      const csv=String(reader.result||'').replace(/^\ufeff/,'');
+      const rows=parseCSV(csv);
+      if(rows.length<2)throw new Error('empty');
+      const header=rows[0].map(v=>String(v).trim().toLowerCase());
+      const idx={date:header.indexOf('date'),mood:header.indexOf('mood'),health:header.indexOf('health'),headache:header.indexOf('headache'),irritability:header.indexOf('irritability'),fatigue:header.indexOf('fatigue'),note:header.indexOf('note')};
+      if(idx.date<0||idx.mood<0||idx.health<0||idx.note<0)throw new Error('header');
+      const data=getData();
+      /* 既存の不正レコードだけを除き、有効な記録は保持する */
+      Object.keys(data).forEach(date=>{if(!isValidEntry(date,data[date]))delete data[date];});
+      let imported=0,skipped=0;
+      rows.slice(1).forEach(cols=>{
+        if(!cols.length||cols.every(v=>String(v).trim()===''))return;
+        const date=String(cols[idx.date]??'').trim();
+        const m=Number(cols[idx.mood]),h=Number(cols[idx.health]);
+        const sh=Number(cols[idx.headache]??0),si=Number(cols[idx.irritability]??0),sf=Number(cols[idx.fatigue]??0);
+        if(!validDate(date)||!validScore(m,1,5)||!validScore(h,1,5)||!validScore(sh,0,3)||!validScore(si,0,3)||!validScore(sf,0,3)){skipped++;return;}
+        data[date]={mood:m,health:h,symptoms:{headache:sh,irritability:si,fatigue:sf},note:String(cols[idx.note]??'')};
         imported++;
       });
-      if(!imported)throw new Error('no valid rows');
-      setData(data);renderAll();alert(imported+'件の記録を読み込みました');
-    }catch(err){alert('CSVを読み込めませんでした。元のCSVファイルを確認してください。')}
+      if(imported===0)throw new Error('no-valid-rows');
+      setData(data);renderAll();
+      alert(`CSVを読み込みました。\\n読み込み：${imported}件${skipped?`\\n形式不正のためスキップ：${skipped}件`:''}`);
+    }catch(err){alert('CSVを読み込めませんでした。元のCSVファイルを確認してください。');}
     e.target.value='';
   };
-  reader.readAsText(file);
+  reader.onerror=()=>{alert('CSVファイルを読み込めませんでした。');e.target.value='';};
+  reader.readAsText(file,'UTF-8');
 }
 function clearAll(){if(confirm('保存したすべての記録を削除します。よろしいですか？')){localStorage.removeItem('dailyConditionEntries');renderAll();loadDate()}}
 $('date').value=today();$('date').addEventListener('change',loadDate);$('range-filters').querySelectorAll('button').forEach(b=>b.onclick=()=>{range=+b.dataset.range;$('range-filters').querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));renderAll()});makeScale('mood-scale',mood,scaleLabels[0],'mood');makeScale('health-scale',health,scaleLabels[1],'health');renderSymptoms();loadDate();window.addEventListener('resize',()=>{if(!$('chart-view').classList.contains('hidden'))drawChart()});
