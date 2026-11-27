@@ -78,7 +78,38 @@ function edit(date){const r=records.find(x=>x.date===date);if(!r)return;$('date'
 function removeRecord(date){if(!confirm(date+' の記録を削除しますか？'))return;records=records.filter(r=>r.date!==date);persist();renderAll()}
 function renderEntries(){const root=$('entries');root.innerHTML='';$('count').textContent=records.length+'件';if(!records.length){root.textContent='まだ記録がありません。';return}records.forEach(r=>{const el=document.createElement('div');el.className='entry';const head=document.createElement('div');head.className='entry-head';const d=document.createElement('span');d.className='entry-date';d.textContent=r.date+'　気分 '+r.mood+'/5・体調 '+r.health+'/5';const acts=document.createElement('div');acts.className='entry-actions';const e=document.createElement('button');e.textContent='編集';e.onclick=()=>edit(r.date);const del=document.createElement('button');del.textContent='削除';del.onclick=()=>removeRecord(r.date);acts.append(e,del);head.append(d,acts);el.append(head);const active=r.symptoms.map((v,i)=>v? symptoms[i]+': '+levels[v]:'').filter(Boolean);const p=document.createElement('p');p.textContent=(active.length?active.join('・'):'症状なし')+(r.note?'\\n'+r.note:'');el.append(p);root.append(el)})}
 function renderStats(){const root=$('symptomStats');root.innerHTML='';symptoms.forEach((s,i)=>{const n=records.filter(r=>r.symptoms[i]>0).length;const box=document.createElement('div');box.className='stat';const strong=document.createElement('strong');strong.textContent=n;const span=document.createElement('span');span.textContent=s+'の日';box.append(strong,span);root.append(box)})}
-function drawChart(){const c=$('chart'),ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);const pad={l:35,r:15,t:15,b:28},cw=w-pad.l-pad.r,ch=h-pad.t-pad.b;ctx.font='12px sans-serif';ctx.strokeStyle='#e3e9e5';ctx.fillStyle='#718078';for(let n=1;n<=5;n++){const y=pad.t+ch-(n-1)*ch/4;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();ctx.fillText(n,pad.l-20,y+4)}const end=new Date(today()+'T00:00:00');const days=[];for(let i=chartDays-1;i>=0;i--){const d=new Date(end);d.setDate(d.getDate()-i);days.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`)}const map=new Map(records.map(r=>[r.date,r]));[['mood','#355d4d'],['health','#d18b45']].forEach(([key,color])=>{ctx.strokeStyle=color;ctx.lineWidth=3;ctx.beginPath();let started=false;days.forEach((date,i)=>{const r=map.get(date),v=r&&r[key];if(!v){started=false;return}const x=pad.l+(days.length===1?0:i*cw/(days.length-1)),y=pad.t+ch-(v-1)*ch/4;if(!started){ctx.moveTo(x,y);started=true}else ctx.lineTo(x,y)});ctx.stroke()});ctx.fillStyle='#718078';ctx.font='10px sans-serif';[0,Math.floor((days.length-1)/2),days.length-1].forEach(i=>{const x=pad.l+i*cw/(days.length-1);ctx.fillText(days[i].slice(5),x-16,h-7)})}
+function drawChart(){
+ const c=$('chart');
+ if(!c) return;
+ const rect=c.getBoundingClientRect();
+ const dpr=window.devicePixelRatio||1;
+ const cssWidth=Math.max(280,Math.floor(rect.width||c.parentElement.clientWidth||700));
+ const cssHeight=190;
+ c.width=Math.floor(cssWidth*dpr);
+ c.height=Math.floor(cssHeight*dpr);
+ c.style.height=cssHeight+'px';
+ const ctx=c.getContext('2d');
+ ctx.setTransform(dpr,0,0,dpr,0,0);
+ const w=cssWidth,h=cssHeight;
+ ctx.clearRect(0,0,w,h);
+ const pad={l:30,r:12,t:12,b:25},cw=w-pad.l-pad.r,ch=h-pad.t-pad.b;
+ ctx.font='11px sans-serif';ctx.strokeStyle='#e3e9e5';ctx.fillStyle='#718078';ctx.lineWidth=1;
+ for(let n=1;n<=5;n++){const y=pad.t+ch-(n-1)*ch/4;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();ctx.fillText(String(n),7,y+4)}
+ const end=new Date(today()+'T00:00:00');
+ const days=[];
+ for(let i=chartDays-1;i>=0;i--){const d=new Date(end);d.setDate(d.getDate()-i);days.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`)}
+ const map=new Map(records.map(r=>[r.date,r]));
+ const series=[['mood','#355d4d'],['health','#d18b45']];
+ series.forEach(([key,color])=>{
+   ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.lineCap='round';
+   let points=[];
+   days.forEach((date,i)=>{const r=map.get(date),v=r?Number(r[key]):0;if(v>=1&&v<=5){const x=pad.l+(days.length===1?0:i*cw/(days.length-1));const y=pad.t+ch-(v-1)*ch/4;points.push({x,y})}});
+   if(points.length){ctx.beginPath();points.forEach((pt,i)=>i?ctx.lineTo(pt.x,pt.y):ctx.moveTo(pt.x,pt.y));ctx.stroke();points.forEach(pt=>{ctx.beginPath();ctx.arc(pt.x,pt.y,3.5,0,Math.PI*2);ctx.fill()})}
+ });
+ ctx.fillStyle='#718078';ctx.font='10px sans-serif';
+ const labelIndexes=[...new Set([0,Math.floor((days.length-1)/2),days.length-1])];
+ labelIndexes.forEach(i=>{const x=pad.l+i*cw/(days.length-1);ctx.fillText(days[i].slice(5),Math.max(0,Math.min(w-34,x-15)),h-5)});
+}
 function renderAll(){renderEntries();renderStats();drawChart()}
 function csvEscape(v){const s=String(v??'');return /[",\\r\\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}
 function exportCSV(){const header=['date','mood','health','headache','irritability','fatigue','note'];const rows=[header,...records.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(r=>[r.date,r.mood,r.health,...r.symptoms,r.note])];const csv='\\uFEFF'+rows.map(row=>row.map(csvEscape).join(',')).join('\\r\\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='daily-condition.csv';a.click();URL.revokeObjectURL(url)}
@@ -87,6 +118,7 @@ function importCSV(file){const reader=new FileReader();reader.onload=()=>{try{co
 makeRating('mood','mood');makeRating('health','health');buildSymptoms();resetForm();renderAll();
 $('save').addEventListener('click',save);$('clear').addEventListener('click',resetForm);$('export').addEventListener('click',exportCSV);$('import').addEventListener('change',e=>{if(e.target.files[0])importCSV(e.target.files[0])});
 document.querySelectorAll('[data-days]').forEach(b=>b.addEventListener('click',()=>{chartDays=Number(b.dataset.days);document.querySelectorAll('[data-days]').forEach(x=>x.classList.toggle('active',x===b));drawChart()}));
+window.addEventListener('resize',drawChart);
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 </script>
 </body></html>
